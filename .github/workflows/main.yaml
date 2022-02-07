@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+  release:
+    types:
+      - created
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Get Version
+      run: echo "APP_VERSION=$(make version)" >> $GITHUB_ENV
+    - name: Print Version
+      run: echo $APP_VERSION
+    - name: Run build
+      run: |
+        make all
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      if: ${{ github.ref == 'refs/heads/main' || github.event_name == 'release' }}
+      with:
+        name: binary-artifacts.zip
+        path: release/
+        if-no-files-found: error
+    - name: Upload linux release artifact
+      uses: actions/upload-release-asset@v1.0.1
+      if: ${{ github.event_name == 'release' }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./release/receipt-generator-linux-${{ env.APP_VERSION }}
+        asset_name: receipt-generator-linux-${{ env.APP_VERSION }}
+        asset_content_type: binary/octet-stream
+    - name: Upload darwin release artifact
+      uses: actions/upload-release-asset@v1.0.1
+      if: ${{ github.event_name == 'release' }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./release/receipt-generator-darwin-${{ env.APP_VERSION }}
+        asset_name: receipt-generator-darwin-${{ env.APP_VERSION }}
+        asset_content_type: binary/octet-stream
+    - name: Upload windows release artifact
+      uses: actions/upload-release-asset@v1.0.1
+      if: ${{ github.event_name == 'release' }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./release/receipt-generator-windows-${{ env.APP_VERSION }}.exe
+        asset_name: receipt-generator-windows-${{ env.APP_VERSION }}.exe
+        asset_content_type: binary/octet-stream
