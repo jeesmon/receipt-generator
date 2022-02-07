@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"regexp"
 	"sort"
@@ -495,7 +496,7 @@ func sanitize(s string) string {
 }
 
 func readConfig(config string) map[string]interface{} {
-	data, err := os.ReadFile(config)
+	data, err := ioutil.ReadFile(config)
 	if err != nil {
 		panic(err)
 	}
